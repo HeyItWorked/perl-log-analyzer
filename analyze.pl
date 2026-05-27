@@ -37,9 +37,16 @@ while (my $line = <$fh>) {
 }
 close $fh;
 
-print "=== COUNTS ===\n";
 print "requests=$total_requests bytes=$total_bytes skipped=$skipped\n";
-foreach my $k (sort keys %ip_count) { print "ip $k: $ip_count{$k}\n"; }
-foreach my $k (sort keys %url_count) { print "url $k: $url_count{$k}\n"; }
-foreach my $k (sort keys %status_count) { print "status $k: $status_count{$k}\n"; }
-# TODO next: top 10 sort desc
+
+print "Top IPs:\n";
+my @ips = sort { $ip_count{$b} <=> $ip_count{$a} } keys %ip_count;
+for my $i (0..9) { last if $i > $#ips; my $k=$ips[$i]; print "  $k: $ip_count{$k}\n"; }
+
+print "Top URLs:\n";
+my @urls = sort { $url_count{$b} <=> $url_count{$a} } keys %url_count;
+for my $i (0..9) { last if $i > $#urls; my $k=$urls[$i]; print "  $k: $url_count{$k}\n"; }
+
+print "Status breakdown:\n";
+my @sts = sort { $status_count{$b} <=> $status_count{$a} } keys %status_count;
+for my $i (0..9) { last if $i > $#sts; my $k=$sts[$i]; print "  $k: $status_count{$k}\n"; }
