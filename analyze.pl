@@ -1,49 +1,35 @@
 #!/usr/bin/env perl
 use strict;
 use warnings;
-
-my $re = qr/^(\S+) \S+ \S+ \[([^\]]+)\] "(\S+) (\S+) [^"]*" (\d+) (\d+|-)/;
+use FindBin;
+use lib $FindBin::Bin;
+use LogStats;
 
 if (@ARGV != 1) {
     print STDERR "usage: $0 access.log\n";
     exit 1;
 }
 
-my %ip_count;
-my %url_count;
-my %status_count;
-my $total_requests = 0;
-my $total_bytes = 0;
-my $skipped = 0;
-
 my $file = $ARGV[0];
 open my $fh, '<', $file or die "cannot open: $file";
-while (my $line = <$fh>) {
-    chomp $line;
-    if ($line =~ $re) {
-        my ($ip, $time, $method, $url, $status, $bytes) = ($1, $2, $3, $4, $5, $6);
-        if ($bytes eq '-') { $bytes = 0; }
-        $ip_count{$ip}++;
-        $url_count{$url}++;
-        $status_count{$status}++;
-        $total_requests++;
-        $total_bytes += $bytes;
-    } else {
-        $skipped++;
-    }
-}
+my $log_text = do { local $/; <$fh> };
 close $fh;
 
-print "requests=$total_requests bytes=$total_bytes skipped=$skipped\n";
+my $stats = LogStats::parse_log($log_text);
+
+print "requests=$stats->{total_requests} bytes=$stats->{total_bytes} skipped=$stats->{skipped}\n";
 
 print "Top IPs:\n";
-my @ips = sort { $ip_count{$b} <=> $ip_count{$a} } keys %ip_count;
-for my $i (0..9) { last if $i > $#ips; my $k=$ips[$i]; print "  $k: $ip_count{$k}\n"; }
+for my $k (sort { $stats->{top_ips}{$b} <=> $stats->{top_ips}{$a} } keys %{$stats->{top_ips}}) {
+    print "  $k: $stats->{top_ips}{$k}\n";
+}
 
 print "Top URLs:\n";
-my @urls = sort { $url_count{$b} <=> $url_count{$a} } keys %url_count;
-for my $i (0..9) { last if $i > $#urls; my $k=$urls[$i]; print "  $k: $url_count{$k}\n"; }
+for my $k (sort { $stats->{top_urls}{$b} <=> $stats->{top_urls}{$a} } keys %{$stats->{top_urls}}) {
+    print "  $k: $stats->{top_urls}{$k}\n";
+}
 
 print "Status breakdown:\n";
-my @sts = sort { $status_count{$b} <=> $status_count{$a} } keys %status_count;
-for my $i (0..9) { last if $i > $#sts; my $k=$sts[$i]; print "  $k: $status_count{$k}\n"; }
+for my $k (sort { $stats->{status_counts}{$b} <=> $stats->{status_counts}{$a} } keys %{$stats->{status_counts}}) {
+    print "  $k: $stats->{status_counts}{$k}\n";
+}
