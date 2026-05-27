@@ -1,0 +1,5 @@
+*.log
+uploads/
+
+# personal planning notes — not part of the project
+PLAN.md
