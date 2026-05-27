@@ -28,5 +28,3 @@ perl analyze.pl access.log
 # web app
 morbo app.pl        # dev server, http://127.0.0.1:3000
 ```
-
-See [PLAN.md](PLAN.md) for the build order and scope.
