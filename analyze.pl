@@ -28,11 +28,8 @@ while (my $line = <$fh>) {
         $status_count{$status}++;
         $total_requests++;
         $total_bytes += $bytes;
-        # debug print still here for now
-        print "MATCH ip=$ip status=$status bytes=$bytes\n";
     } else {
         $skipped++;
-        print "NO MATCH: $line\n";
     }
 }
 close $fh;
