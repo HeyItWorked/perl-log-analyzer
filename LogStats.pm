@@ -31,17 +31,20 @@ sub parse_log {
         }
     }
 
-    my @top_ips = grep { $_ ne '' } sort { $ip_count{$b} <=> $ip_count{$a} } keys %ip_count;
-    my @top_urls = grep { $_ ne '' } sort { $url_count{$b} <=> $url_count{$a} } keys %url_count;
-    my @top_status = grep { $_ ne '' } sort { $status_count{$b} <=> $status_count{$a} } keys %status_count;
+    sub top_n {
+        my ($counts, $n) = @_;
+        my @keys = sort { $counts->{$b} <=> $counts->{$a} } keys %$counts;
+        @keys = @keys[0 .. $n - 1] if @keys > $n;
+        return { map { $_ => $counts->{$_} } @keys };
+    }
 
     return {
         total_requests => $total_requests,
         total_bytes => $total_bytes,
         skipped => $skipped,
-        top_ips => { map { $_ => $ip_count{$_} } @top_ips[0..9] },
-        top_urls => { map { $_ => $url_count{$_} } @top_urls[0..9] },
-        status_counts => { map { $_ => $status_count{$_} } @top_status[0..9] },
+        top_ips => top_n(\%ip_count, 10),
+        top_urls => top_n(\%url_count, 10),
+        status_counts => top_n(\%status_count, 10),
     };
 }
 
